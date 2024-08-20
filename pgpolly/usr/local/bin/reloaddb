@@ -1,0 +1,18 @@
+#!/bin/bash
+## Pieter van den Hombergh
+## version 0.1
+## relad the database by dropping the polly schema that has all polly specific stuffA
+
+# the dir where the database defining files are located
+cd /docker-entrypoint-initdb.d/
+echo 'drop schema polly cascade;' | psql pollydb
+
+# for each s1l file in order, feed it to the database
+for i in *.sql; do
+	psql pollydb < ${i}
+done 
+
+# trigger the postgrest container to invalidate its cache and reload the definitions from the database
+# pgrst is the channel the rest server is listening on
+
+echo 'notify pgrst;' | psql pollydb
